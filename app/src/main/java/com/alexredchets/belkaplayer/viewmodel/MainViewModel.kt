@@ -1,4 +1,4 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.viewmodel
 
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
@@ -7,7 +7,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import com.alexredchets.belkaplayer.network.MainRepo
+import com.alexredchets.belkaplayer.network.NetManager
+import com.alexredchets.belkaplayer.network.State
+import com.alexredchets.belkaplayer.model.VideoData
+import com.alexredchets.belkaplayer.network.VideoResponseItem
+import com.alexredchets.belkaplayer.network.applyCommonHandling
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.noties.markwon.Markwon
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +26,7 @@ class MainViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val mainRepo: MainRepo,
     private val netManager: NetManager,
+    private val markwon: Markwon,
     val player: Player
 ) : ViewModel() {
 
@@ -62,7 +70,7 @@ class MainViewModel @Inject constructor(
         VideoData(
             title = responseItem.title ?: NO_INFO_VALUE,
             author = responseItem.author?.name ?: NO_INFO_VALUE,
-            description = responseItem.description ?: NO_INFO_VALUE,
+            description = markwon.toMarkdown(responseItem.description ?: NO_INFO_VALUE),
             uri = Uri.parse(responseItem.fullURL),
             mediaItem = MediaItem.fromUri(Uri.parse(responseItem.fullURL))
         ).also {

@@ -1,4 +1,4 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.network
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

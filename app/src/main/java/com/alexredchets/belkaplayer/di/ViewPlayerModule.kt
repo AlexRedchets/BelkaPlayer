@@ -1,13 +1,18 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.di
 
 import android.app.Application
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.alexredchets.belkaplayer.network.BelkaPlayerApi
+import com.alexredchets.belkaplayer.network.MainRepo
+import com.alexredchets.belkaplayer.network.NetManager
+import com.alexredchets.belkaplayer.network.NetworkDecorator
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.noties.markwon.Markwon
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import okhttp3.ConnectionSpec
@@ -65,4 +70,8 @@ object ViewPlayerModule {
     @Provides
     @Singleton
     fun provideMainRepo(api: BelkaPlayerApi): MainRepo = MainRepo(api)
+
+    @Provides
+    @Singleton
+    fun provideMarkwon(context: Application): Markwon = Markwon.create(context)
 }

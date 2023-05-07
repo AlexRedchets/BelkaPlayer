@@ -1,6 +1,8 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.view
 
+import android.content.res.Configuration
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -24,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -43,7 +47,10 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.ui.PlayerView
+import com.alexredchets.belkaplayer.R
+import com.alexredchets.belkaplayer.model.VideoData
 import com.alexredchets.belkaplayer.ui.theme.BelkaPlayerTheme
+import com.alexredchets.belkaplayer.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -70,6 +77,7 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(Lifecycle.Event.ON_CREATE)
                 }
                 val lifecycleOwner = LocalLifecycleOwner.current
+                val configuration = LocalConfiguration.current
                 val loading = viewModel.loadingVisible.collectAsState()
                 val isLoading by rememberUpdatedState(newValue = loading)
                 if (isLoading.value) {
@@ -83,83 +91,24 @@ class MainActivity : ComponentActivity() {
                         lifecycleOwner.lifecycle.removeObserver(observer)
                     }
                 }
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = stringResource(id = R.string.app_name),
-                                color = colorResource(id = R.color.white)
-                            )
-                        },
-                        colors = TopAppBarDefaults.smallTopAppBarColors(
-                            containerColor = colorResource(
-                                id = R.color.black
-                            )
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    AndroidView(
-                        factory = { context ->
-                            PlayerView(context).apply {
-                                player = viewModel.player
-                                setShowFastForwardButton(false)
-                                setShowRewindButton(false)
-                            }
-                        },
-                        update = {
-                            when (lifecycle) {
-                                Lifecycle.Event.ON_PAUSE -> {
-                                    it.onPause()
-                                    it.player?.pause()
-                                }
-                                Lifecycle.Event.ON_RESUME -> {
-                                    it.onResume()
-                                }
-                                else -> Unit
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16 / 9f)
-                            .padding(start = 16.dp, end = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        item {
-                            Text(
-                                text = currentVideo.value?.title ?: "",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = currentVideo.value?.author ?: "",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = currentVideo.value?.description ?: "",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-
-                            )
-                        }
-                    }
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    LandscapeScreenContent(lifecycle = lifecycle)
+                } else {
+                    PortraitScreenContent(lifecycle = lifecycle, currentVideo = currentVideo)
                 }
             }
         }
+    }
+
+    @Composable
+    fun StyledText(text: CharSequence, modifier: Modifier = Modifier) {
+        AndroidView(
+            modifier = modifier,
+            factory = { context -> TextView(context) },
+            update = {
+                it.text = text
+            }
+        )
     }
 
     @Composable
@@ -218,5 +167,112 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun PortraitScreenContent(lifecycle: Lifecycle.Event, currentVideo: State<VideoData?>) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        color = colorResource(id = R.color.white)
+                    )
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = colorResource(
+                        id = R.color.black
+                    )
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            AndroidView(
+                factory = { context ->
+                    PlayerView(context).apply {
+                        player = viewModel.player
+                        setShowFastForwardButton(false)
+                        setShowRewindButton(false)
+                    }
+                },
+                update = {
+                    when (lifecycle) {
+                        Lifecycle.Event.ON_PAUSE -> {
+                            it.onPause()
+                            it.player?.pause()
+                        }
+                        Lifecycle.Event.ON_RESUME -> {
+                            it.onResume()
+                        }
+                        else -> Unit
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16 / 9f)
+                    .padding(start = 16.dp, end = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                item {
+                    Text(
+                        text = currentVideo.value?.title ?: "",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = currentVideo.value?.author ?: "",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StyledText(
+                        text = currentVideo.value?.description ?: "",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun LandscapeScreenContent(lifecycle: Lifecycle.Event) {
+        AndroidView(
+            factory = { context ->
+                PlayerView(context).apply {
+                    player = viewModel.player
+                    setShowFastForwardButton(false)
+                    setShowRewindButton(false)
+                }
+            },
+            update = {
+                when (lifecycle) {
+                    Lifecycle.Event.ON_PAUSE -> {
+                        it.onPause()
+                        it.player?.pause()
+                    }
+                    Lifecycle.Event.ON_RESUME -> {
+                        it.onResume()
+                    }
+                    else -> Unit
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16 / 9f)
+        )
     }
 }

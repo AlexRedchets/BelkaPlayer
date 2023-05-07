@@ -1,4 +1,4 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.network
 
 import okhttp3.Interceptor
 import okhttp3.Response

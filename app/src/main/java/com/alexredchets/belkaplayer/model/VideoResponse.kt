@@ -1,4 +1,4 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.network
 
 import com.google.gson.annotations.SerializedName
 import java.util.Date

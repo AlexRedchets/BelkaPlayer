@@ -1,4 +1,4 @@
-package com.alexredchets.belkaplayer
+package com.alexredchets.belkaplayer.network
 
 import android.content.Context
 import android.net.ConnectivityManager
